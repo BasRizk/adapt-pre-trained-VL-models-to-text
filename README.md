@@ -1,5 +1,31 @@
 # Adapt Pre-trained Vision-and-Language Models to a Text-only Input
 
+### Setup environment:
+
+```
+conda install vl python=3.8
+
+conda activate vl
+
+pip install torch==1.8.1 && pip install  -r requirements.txt
+```
+
+### Download models' weights:
+```
+sh download_model_weights.sh
+```
+
+### Download datasets:
+```
+sh download_data_lxmert.sh
+
+sh download_data_wikipedia.sh
+```
+
+
+
+
+## Original README:
 This repo contains the code for the COLING 2022 paper [How to Adapt Pre-trained Vision-and-Language Models to a Text-only Input?](https://aclanthology.org/2022.coling-1.494.pdf).
 
 <img src="images/overview.png" width="400"/>

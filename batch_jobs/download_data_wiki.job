@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64GB
+#SBATCH --time=3:00:00
+#SBATCH --account=jessetho_1016  
+
+module purge && echo "purged modules" &&\
+source init_env_on_carc.sh &&\
+echo "done setup env" &&\
+sh download_data_wikipedia.sh &&\\
+echo "done downloading wikipedia dataset"

@@ -45,7 +45,6 @@ def split_to_sentences(examples, sentencizer):
                 sentence = str(sentence).strip()
                 if sentence.count(" ") > 0:
                     return_examples += [sentence]
-        
     return {"text": return_examples}
 
 def transform_to_ascii(example):
@@ -55,22 +54,60 @@ def process_dataset_parts(dataset_name,
                           revision,
                           save_dir, 
                           cache_dir, 
-                          process_splits=["train[:10%]", "train[10%:20%]", "train[20%:30%]", "train[30%:40%]", "train[40%:50%]", "train[50%:60%]", "train[60%:70%]", "train[70%:80%]", "train[80%:90%]", "train[90%:]"]):
+                          process_splits=["train[:10%]", "train[10%:20%]", 
+                                          "train[20%:30%]", "train[30%:40%]",
+                                          "train[40%:50%]", "train[50%:60%]", 
+                                          "train[60%:70%]", "train[70%:80%]",
+                                          "train[80%:90%]", "train[90%:]"],
+                          num_proc=4):
     # process the dataset by splitting it into sentences and turning to ascii
     # do it in parts due to memory issues
     nlp = English()
     nlp.add_pipe("sentencizer", config={"punct_chars": [".", "!", "。"]})
     
+
     for process_split in process_splits:
         dataset = datasets.load_dataset(dataset_name, revision, cache_dir=cache_dir, split=process_split)
         #print(dataset.info)
+        import os
+        print(os.getcwd())
+        
+        # Ensure mappings is found before using it!
+        cache_mapping_dir = os.path.join(cache_dir, "mappings")
+        if not os.path.exists(cache_mapping_dir):
+            os.makedirs(cache_mapping_dir)
+                    
+        chunked_dataset = dataset.map(
+            lambda x: split_to_sentences(x, nlp), 
+            batched=True, 
+            batch_size=10, 
+            writer_batch_size=10, 
+            remove_columns=dataset.column_names,
+            cache_file_name=os.path.join(
+                cache_dir, "mappings", 
+                f"to_sentences_{process_split}.arrow"
+            ), 
+            num_proc=num_proc, 
+            keep_in_memory=False
+        )
 
-        chunked_dataset = dataset.map(lambda x: split_to_sentences(x, nlp), batched=True, batch_size=10, writer_batch_size=10, remove_columns=dataset.column_names, cache_file_name=os.path.join(cache_dir, "mappings", f"to_sentences_{process_split}.arrow"), num_proc=4, keep_in_memory=False)
-        chunked_dataset = chunked_dataset.map(transform_to_ascii, batched=False, writer_batch_size=10, cache_file_name=os.path.join(cache_dir, "mappings", f"to_ascii_{process_split}.arrow"), num_proc=4, keep_in_memory=False)
+        # breakpoint()
+        chunked_dataset = chunked_dataset.map(
+            transform_to_ascii, 
+            batched=False,
+            writer_batch_size=10, 
+            cache_file_name=os.path.join(
+                cache_dir, "mappings",
+                f"to_ascii_{process_split}.arrow"
+            ),
+            num_proc=num_proc, 
+            keep_in_memory=False
+        )
+
         filename = os.path.join(save_dir, f"sentences_{process_split}.jsonl")
         filename = filename.replace("[", "").replace("]", "")
         chunked_dataset.to_json(filename, force_ascii=True)
-
+        
 def concat_dataset_parts(dataset_save_path,
                          save_dir,
                          load_splits=["train:10%", "train10%:20%", "train20%:30%", "train30%:40%", "train40%:50%", "train50%:60%", "train60%:70%", "train70%:80%", "train80%:90%", "train90%:"]):
@@ -87,11 +124,13 @@ def concat_dataset_parts(dataset_save_path,
 def main(args):
     main_dataset_path = os.path.join(args.save_dir, "sentences.jsonl")
     if not os.path.exists(main_dataset_path):
+        
         process_dataset_parts(args.dataset_name,
                               revision=args.revision,
                               save_dir=args.save_dir,
                               cache_dir=args.cache_dir,
                               process_splits=["train[:10%]", "train[10%:20%]", "train[20%:30%]", "train[30%:40%]", "train[40%:50%]", "train[50%:60%]", "train[60%:70%]", "train[70%:80%]", "train[80%:90%]", "train[90%:]"])
+        # breakpoint()
         dataset = concat_dataset_parts(dataset_save_path=main_dataset_path,
                                        save_dir=args.save_dir,
                                        load_splits=["train:10%", "train10%:20%", "train20%:30%", "train30%:40%", "train40%:50%", "train50%:60%", "train60%:70%", "train70%:80%", "train80%:90%", "train90%:"])

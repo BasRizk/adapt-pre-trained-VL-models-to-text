@@ -5,6 +5,7 @@ import os
 from spacy.lang.en import English
 from unidecode import unidecode
 
+N_PROCS = 16
 def get_args():
     parser = argparse.ArgumentParser(description="Extracts a subset of a corpus")
     parser.add_argument("--dataset-name", type=str, help="What dataset to process and load")
@@ -59,9 +60,11 @@ def process_dataset_parts(dataset_name,
                                           "train[40%:50%]", "train[50%:60%]", 
                                           "train[60%:70%]", "train[70%:80%]",
                                           "train[80%:90%]", "train[90%:]"],
-                          num_proc=4):
+                          num_proc=N_PROCS):
     # process the dataset by splitting it into sentences and turning to ascii
     # do it in parts due to memory issues
+    # breakpoint()
+    # print('hello')
     nlp = English()
     nlp.add_pipe("sentencizer", config={"punct_chars": [".", "!", "。"]})
     
@@ -113,6 +116,7 @@ def concat_dataset_parts(dataset_save_path,
                          load_splits=["train:10%", "train10%:20%", "train20%:30%", "train30%:40%", "train40%:50%", "train50%:60%", "train60%:70%", "train70%:80%", "train80%:90%", "train90%:"]):
     # concatenate processed parts into one large
     dataset_parts = []
+    # breakpoint()
     for load_split in load_splits:
         dataset_parts.append(datasets.load_dataset('json', data_files=os.path.join(save_dir, f"sentences_{load_split}.jsonl"), split="train"))
         

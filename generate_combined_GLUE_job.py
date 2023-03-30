@@ -14,7 +14,7 @@ if __name__ == "__main__":
     with open(os.path.join(batch_jobs_dir, output_filename), mode="w+") as f:
         f.writelines([
             'source init_env_on_carc_with_gpu.sh &&\\', '\n',
-            'echo "done init env', '\n\n'
+            'echo "done init env"', '\n\n'
         ])
     
         for model_run_dir in os.listdir(runs_parent_dir):

@@ -1,5 +1,17 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=16GB
+#SBATCH --time=2:00:00
+#SBATCH --account=jessetho_1016  
+#SBATCH --gres=gpu:v100:1 
+#SBATCH --partition=gpu
+
+module purge && echo "purged modules" &&\
 source init_env_on_carc_with_gpu.sh &&\
-echo "done init env
+echo "done init env"
 
 sh GLUE/data/runs/clipbert-avg-visual-features/run.sh &&\
 echo "done clipbert-avg-visual-features"

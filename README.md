@@ -1,9 +1,8 @@
 # Adapt Pre-trained Vision-and-Language Models to a Text-only Input
 
 ### Setup environment:
-
 ```
-conda install vl python=3.8
+conda create -n vl python=3.8
 
 conda activate vl
 

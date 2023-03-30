@@ -1,0 +1,58 @@
+source init_env_on_carc_with_gpu.sh &&\
+echo "done init env
+
+sh GLUE/data/runs/clipbert-avg-visual-features/run.sh &&\
+echo "done clipbert-avg-visual-features"
+
+sh GLUE/data/runs/lxmert-zeroed-visual-features/run.sh &&\
+echo "done lxmert-zeroed-visual-features"
+
+sh GLUE/data/runs/clipbert-no-visual-features/run.sh &&\
+echo "done clipbert-no-visual-features"
+
+sh GLUE/data/runs/flava-no-visual-features/run.sh &&\
+echo "done flava-no-visual-features"
+
+sh GLUE/data/runs/clipbert-zeroed-visual-features/run.sh &&\
+echo "done clipbert-zeroed-visual-features"
+
+sh GLUE/data/runs/bert-base-trained-lxmert/run.sh &&\
+echo "done bert-base-trained-lxmert"
+
+sh GLUE/data/runs/clipbert-zero-image-visual-features/run.sh &&\
+echo "done clipbert-zero-image-visual-features"
+
+sh GLUE/data/runs/lxmert-no-visual-features/run.sh &&\
+echo "done lxmert-no-visual-features"
+
+sh GLUE/data/runs/visualbert-zeroed-visual-features/run.sh &&\
+echo "done visualbert-zeroed-visual-features"
+
+sh GLUE/data/runs/clipbert-imagined-visual-features/run.sh &&\
+echo "done clipbert-imagined-visual-features"
+
+sh GLUE/data/runs/bert-base-trained-wikipedia/run.sh &&\
+echo "done bert-base-trained-wikipedia"
+
+sh GLUE/data/runs/bert-base-trained-lxmert-scratch/run.sh &&\
+echo "done bert-base-trained-lxmert-scratch"
+
+sh GLUE/data/runs/bert-base/run.sh &&\
+echo "done bert-base"
+
+sh GLUE/data/runs/lxmert-zero-image-visual-features/run.sh &&\
+echo "done lxmert-zero-image-visual-features"
+
+sh GLUE/data/runs/visualbert-zero-image-visual-features/run.sh &&\
+echo "done visualbert-zero-image-visual-features"
+
+sh GLUE/data/runs/lxmert-avg-visual-features/run.sh &&\
+echo "done lxmert-avg-visual-features"
+
+sh GLUE/data/runs/visualbert-no-visual-features/run.sh &&\
+echo "done visualbert-no-visual-features"
+
+sh GLUE/data/runs/visualbert-avg-visual-features/run.sh &&\
+echo "done visualbert-avg-visual-features"
+
+echo "done with all scripts"

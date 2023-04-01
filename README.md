@@ -6,7 +6,7 @@ conda create -n vl python=3.8
 
 conda activate vl
 
-pip install torch==1.8.1 && pip install  -r requirements.txt
+pip install torch==1.8.1 && pip install  -r requirements.txt && pip install protobuf==3.20.*
 ```
 
 ### Download models' weights:

@@ -7,8 +7,16 @@
 #SBATCH --time=3:00:00
 #SBATCH --account=jessetho_1016  
 
+
+SCRIPTS_DIR=scripts
+ENV_NAME=vl
+
 module purge && echo "purged modules" &&\
-source init_env_on_carc.sh &&\
+source $PWD/$SCRIPTS_DIR/init_env_on_carc.sh &&\
+conda activate $ENV_NAME &&\
 echo "done setup env" &&\
-sh download_data_wikipedia.sh &&\\
+sh $SCRIPTS_DIR/download_data_wikipedia.sh &&\\
 echo "done downloading wikipedia dataset"
+
+
+

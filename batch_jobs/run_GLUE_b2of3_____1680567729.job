@@ -1,0 +1,430 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=16GB
+#SBATCH --time=9:00:00
+#SBATCH --account=jessetho_1016
+#SBATCH --gres=gpu:v100:1
+#SBATCH --partition=gpu
+
+SCRIPTS_DIR=scripts
+ENV_NAME=vl
+
+module purge && echo "purged modules" &&\
+source $PWD/$SCRIPTS_DIR/init_env_on_carc_with_gpu.sh &&\
+conda activate $ENV_NAME &&\
+echo "done init and activating env: $ENV_NAME"
+
+NUM_DONE=0
+
+
+
+echo "evaluating lxmert-avg-visual-features on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-avg-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/1 : lxmert-avg-visual-features"
+
+echo "evaluating lxmert-avg-visual-features on 2:mrpc"
+TASK_ID=2
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-avg-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/2 : lxmert-avg-visual-features"
+
+echo "evaluating lxmert-avg-visual-features on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-avg-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/3 : lxmert-avg-visual-features"
+
+echo "evaluating lxmert-avg-visual-features on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-avg-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/4 : lxmert-avg-visual-features"
+
+echo "evaluating lxmert-avg-visual-features on 6:sst2"
+TASK_ID=6
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-avg-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/5 : lxmert-avg-visual-features"
+
+echo "evaluating lxmert-avg-visual-features on 7:stsb"
+TASK_ID=7
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-avg-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/6 : lxmert-avg-visual-features"&&\
+rm -r GLUE/data/logs/lxmert-avg-visual-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/7 : lxmert-finetuned-lxmert-visual-features"
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 2:mrpc"
+TASK_ID=2
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/8 : lxmert-finetuned-lxmert-visual-features"
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/9 : lxmert-finetuned-lxmert-visual-features"
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/10 : lxmert-finetuned-lxmert-visual-features"
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/11 : lxmert-finetuned-lxmert-visual-features"
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 6:sst2"
+TASK_ID=6
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/12 : lxmert-finetuned-lxmert-visual-features"
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 7:stsb"
+TASK_ID=7
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/13 : lxmert-finetuned-lxmert-visual-features"&&\
+rm -r GLUE/data/logs/lxmert-finetuned-lxmert-visual-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/14 : lxmert-finetuned-wikipedia-visual-features"
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 2:mrpc"
+TASK_ID=2
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/15 : lxmert-finetuned-wikipedia-visual-features"
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/16 : lxmert-finetuned-wikipedia-visual-features"
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/17 : lxmert-finetuned-wikipedia-visual-features"
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/18 : lxmert-finetuned-wikipedia-visual-features"
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 6:sst2"
+TASK_ID=6
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/19 : lxmert-finetuned-wikipedia-visual-features"
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 7:stsb"
+TASK_ID=7
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/20 : lxmert-finetuned-wikipedia-visual-features"&&\
+rm -r GLUE/data/logs/lxmert-finetuned-wikipedia-visual-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-no-visual-features on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/21 : lxmert-no-visual-features"
+
+echo "evaluating lxmert-no-visual-features on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/22 : lxmert-no-visual-features"
+
+echo "evaluating lxmert-no-visual-features on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/23 : lxmert-no-visual-features"
+
+echo "evaluating lxmert-no-visual-features on 6:sst2"
+TASK_ID=6
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/24 : lxmert-no-visual-features"
+
+echo "evaluating lxmert-no-visual-features on 7:stsb"
+TASK_ID=7
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/25 : lxmert-no-visual-features"
+
+echo "evaluating lxmert-no-visual-features on 8:wnli"
+TASK_ID=8
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/26 : lxmert-no-visual-features"&&\
+rm -r GLUE/data/logs/lxmert-no-visual-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-no-visual-features-finetuned-lxmert on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-lxmert/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/27 : lxmert-no-visual-features-finetuned-lxmert"
+
+echo "evaluating lxmert-no-visual-features-finetuned-lxmert on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-lxmert/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/28 : lxmert-no-visual-features-finetuned-lxmert"
+
+echo "evaluating lxmert-no-visual-features-finetuned-lxmert on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-lxmert/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/29 : lxmert-no-visual-features-finetuned-lxmert"
+
+echo "evaluating lxmert-no-visual-features-finetuned-lxmert on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-lxmert/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/30 : lxmert-no-visual-features-finetuned-lxmert"
+
+echo "evaluating lxmert-no-visual-features-finetuned-lxmert on 6:sst2"
+TASK_ID=6
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-lxmert/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/31 : lxmert-no-visual-features-finetuned-lxmert"&&\
+rm -r GLUE/data/logs/lxmert-no-visual-features-finetuned-lxmert/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-no-visual-features-finetuned-wikipedia on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/32 : lxmert-no-visual-features-finetuned-wikipedia"
+
+echo "evaluating lxmert-no-visual-features-finetuned-wikipedia on 2:mrpc"
+TASK_ID=2
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/33 : lxmert-no-visual-features-finetuned-wikipedia"
+
+echo "evaluating lxmert-no-visual-features-finetuned-wikipedia on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/34 : lxmert-no-visual-features-finetuned-wikipedia"
+
+echo "evaluating lxmert-no-visual-features-finetuned-wikipedia on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/35 : lxmert-no-visual-features-finetuned-wikipedia"
+
+echo "evaluating lxmert-no-visual-features-finetuned-wikipedia on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/36 : lxmert-no-visual-features-finetuned-wikipedia"
+
+echo "evaluating lxmert-no-visual-features-finetuned-wikipedia on 6:sst2"
+TASK_ID=6
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/37 : lxmert-no-visual-features-finetuned-wikipedia"
+
+echo "evaluating lxmert-no-visual-features-finetuned-wikipedia on 7:stsb"
+TASK_ID=7
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/38 : lxmert-no-visual-features-finetuned-wikipedia"&&\
+rm -r GLUE/data/logs/lxmert-no-visual-features-finetuned-wikipedia/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-zero-image-visual-features on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zero-image-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/39 : lxmert-zero-image-visual-features"
+
+echo "evaluating lxmert-zero-image-visual-features on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zero-image-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/40 : lxmert-zero-image-visual-features"
+
+echo "evaluating lxmert-zero-image-visual-features on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zero-image-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/41 : lxmert-zero-image-visual-features"
+
+echo "evaluating lxmert-zero-image-visual-features on 6:sst2"
+TASK_ID=6
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zero-image-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/42 : lxmert-zero-image-visual-features"
+
+echo "evaluating lxmert-zero-image-visual-features on 7:stsb"
+TASK_ID=7
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zero-image-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/43 : lxmert-zero-image-visual-features"&&\
+rm -r GLUE/data/logs/lxmert-zero-image-visual-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-zeroed-visual-features on 1:mnli"
+TASK_ID=1
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zeroed-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/44 : lxmert-zeroed-visual-features"
+
+echo "evaluating lxmert-zeroed-visual-features on 3:qnli"
+TASK_ID=3
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zeroed-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/45 : lxmert-zeroed-visual-features"
+
+echo "evaluating lxmert-zeroed-visual-features on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-zeroed-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/46 : lxmert-zeroed-visual-features"&&\
+rm -r GLUE/data/logs/lxmert-zeroed-visual-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating visualbert-avg-visual-features on 4:qqp"
+TASK_ID=4
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/visualbert-avg-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/47 : visualbert-avg-visual-features"echo "done trying to run all 47 scripts"

@@ -5,7 +5,7 @@ import os
 from spacy.lang.en import English
 from unidecode import unidecode
 
-N_PROCS = 16
+N_PROCS = 8
 def get_args():
     parser = argparse.ArgumentParser(description="Extracts a subset of a corpus")
     parser.add_argument("--dataset-name", type=str, help="What dataset to process and load")

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=16GB
+#SBATCH --time=24:00:00
+#SBATCH --account=jessetho_1016
+#SBATCH --gres=gpu:v100:1
+#SBATCH --partition=gpu
+
+SCRIPTS_DIR=scripts
+ENV_NAME=vl
+
+module purge && echo "purged modules" &&\
+source $PWD/$SCRIPTS_DIR/init_env_on_carc_with_gpu.sh &&\
+conda activate $ENV_NAME &&\
+echo "done init and activating env: $ENV_NAME"
+
+NUM_DONE=0
+
+
+
+echo "evaluating clipbert-generated-imgs-features on 0:cola"
+TASK_ID=0
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/clipbert-generated-imgs-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/1 : clipbert-generated-imgs-features"&&\
+rm -r GLUE/data/logs/clipbert-generated-imgs-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-finetuned-lxmert-visual-features on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-lxmert-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/2 : lxmert-finetuned-lxmert-visual-features"&&\
+rm -r GLUE/data/logs/lxmert-finetuned-lxmert-visual-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating lxmert-finetuned-wikipedia-visual-features on 2:mrpc"
+TASK_ID=2
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/lxmert-finetuned-wikipedia-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/3 : lxmert-finetuned-wikipedia-visual-features"echo "done trying to run all 3 scripts"

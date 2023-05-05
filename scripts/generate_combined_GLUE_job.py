@@ -125,7 +125,7 @@ if __name__ == "__main__":
     runs = []
     for _dir in filtered_models_runs:
         for task_id in args.task_ids:
-            task_name = _TASK_NAMES[task_id]
+            task_name = _TASK_NAMES[int(task_id)]
             if is_completed_before(_dir, task_name):
                 print(f'Discarding completeed {_dir} on {task_name}')
                 num_ignored += 1

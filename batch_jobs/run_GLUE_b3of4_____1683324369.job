@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=16GB
+#SBATCH --time=24:00:00
+#SBATCH --account=jessetho_1016
+#SBATCH --gres=gpu:v100:1
+#SBATCH --partition=gpu
+
+SCRIPTS_DIR=scripts
+ENV_NAME=vl
+
+module purge && echo "purged modules" &&\
+source $PWD/$SCRIPTS_DIR/init_env_on_carc_with_gpu.sh &&\
+conda activate $ENV_NAME &&\
+echo "done init and activating env: $ENV_NAME"
+
+NUM_DONE=0
+
+
+
+echo "evaluating visualbert-generated-imgs-features on 0:cola"
+TASK_ID=0
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/visualbert-generated-imgs-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/1 : visualbert-generated-imgs-features"
+
+echo "evaluating visualbert-generated-imgs-features on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/visualbert-generated-imgs-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/2 : visualbert-generated-imgs-features"&&\
+rm -r GLUE/data/logs/visualbert-generated-imgs-features/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating visualbert-no-visual-features-finetuned-lxmert on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/visualbert-no-visual-features-finetuned-lxmert/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/3 : visualbert-no-visual-features-finetuned-lxmert"echo "done trying to run all 3 scripts"

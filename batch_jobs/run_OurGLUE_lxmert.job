@@ -6,7 +6,7 @@
 #SBATCH --mem=16GB
 #SBATCH --time=24:00:00
 #SBATCH --account=jessetho_1016
-#SBATCH --gres=gpu:p100:1
+#SBATCH --gres=gpu:v100:1
 #SBATCH --partition=gpu
 
 SCRIPTS_DIR=scripts
@@ -22,35 +22,17 @@ TASK_NAMES=("cola" "mnli" "mrpc" "qnli" "qqp" "rte" "sst2" "stsb" "wnli")
 
 MODEL_ADAPTATION=lxmert-generated-imgs-features
 
-TASK_ID=0
-echo "evaluating generated-img-features on $TASK_ID:${TASK_NAMES[$TASK_ID]}"
-export TASK_ID
-conda activate $ENV_NAME &&\
-sh GLUE/data/runs/${MODEL_ADAPTATION}/run.sh &&\
-NUM_DONE=$((NUM_DONE+1)) &&\
-echo "done script $NUM_DONE/1 : ${MODEL_ADAPTATION}"&&\
-rm -r GLUE/data/logs/${MODEL_ADAPTATION}/*/checkpoint* &&\
-echo "erased ckpts"
-
-
-TASK_ID=8
-echo "evaluating generated-img-features on $TASK_ID:${TASK_NAMES[$TASK_ID]}"
-export TASK_ID
-conda activate $ENV_NAME &&\
-sh GLUE/data/runs/${MODEL_ADAPTATION}/run.sh &&\
-NUM_DONE=$((NUM_DONE+1)) &&\
-echo "done script $NUM_DONE/1 : ${MODEL_ADAPTATION}"&&\
-rm -r GLUE/data/logs/${MODEL_ADAPTATION}/*/checkpoint* &&\
-echo "erased ckpts"
-
-
-TASK_ID=2
-echo "evaluating generated-img-features on $TASK_ID:${TASK_NAMES[$TASK_ID]}"
-export TASK_ID
-conda activate $ENV_NAME &&\
-sh GLUE/data/runs/${MODEL_ADAPTATION}/run.sh &&\
-NUM_DONE=$((NUM_DONE+1)) &&\
-echo "done script $NUM_DONE/1 : ${MODEL_ADAPTATION}"&&\
-rm -r GLUE/data/logs/${MODEL_ADAPTATION}/*/checkpoint* &&\
-echo "erased ckpts"
-
+NUM_DONE=0
+TASKS_IDS_TO_EVAL=(5) # DONE: 8, 2 TODO: 0
+NUM_EVALS=${#TASKS_IDS_TO_EVAL[@]}
+for TASK_ID in $TASKS_IDS_TO_EVAL
+do
+    echo "evaluating generated-img-features on $TASK_ID:${TASK_NAMES[$TASK_ID]}"
+    export TASK_ID
+    conda activate $ENV_NAME &&\
+    sh GLUE/data/runs/${MODEL_ADAPTATION}/run.sh &&\
+    NUM_DONE=$((NUM_DONE+1)) &&\
+    echo "done script $NUM_DONE/${#TASKS_IDS_TO_EVAL[@]} : ${MODEL_ADAPTATION}"&&\
+    rm -r GLUE/data/logs/${MODEL_ADAPTATION}/*/checkpoint* &&\
+    echo "erased ckpts"
+done

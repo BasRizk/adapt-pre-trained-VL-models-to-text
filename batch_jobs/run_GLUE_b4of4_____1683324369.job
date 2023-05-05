@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=16GB
+#SBATCH --time=24:00:00
+#SBATCH --account=jessetho_1016
+#SBATCH --gres=gpu:v100:1
+#SBATCH --partition=gpu
+
+SCRIPTS_DIR=scripts
+ENV_NAME=vl
+
+module purge && echo "purged modules" &&\
+source $PWD/$SCRIPTS_DIR/init_env_on_carc_with_gpu.sh &&\
+conda activate $ENV_NAME &&\
+echo "done init and activating env: $ENV_NAME"
+
+NUM_DONE=0
+
+
+
+echo "evaluating visualbert-no-visual-features-finetuned-wikipedia on 2:mrpc"
+TASK_ID=2
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/visualbert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/1 : visualbert-no-visual-features-finetuned-wikipedia"
+
+echo "evaluating visualbert-no-visual-features-finetuned-wikipedia on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/visualbert-no-visual-features-finetuned-wikipedia/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/2 : visualbert-no-visual-features-finetuned-wikipedia"&&\
+rm -r GLUE/data/logs/visualbert-no-visual-features-finetuned-wikipedia/*/checkpoint* &&\
+echo "erased ckpts"
+
+
+
+echo "evaluating visualbert-zeroed-visual-features on 5:rte"
+TASK_ID=5
+export TASK_ID
+source activate $ENV_NAME &&\
+sh GLUE/data/runs/visualbert-zeroed-visual-features/run.sh &&\
+NUM_DONE=$((NUM_DONE+1)) &&\
+echo "done script $NUM_DONE/3 : visualbert-zeroed-visual-features"echo "done trying to run all 3 scripts"

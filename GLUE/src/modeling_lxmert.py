@@ -15,6 +15,12 @@ def get_lxmert_batch(batch, visual_feats=None, visual_boxes=None, use_generated_
     if use_generated_imgs:
         assert "visual_feats" in batch
         assert "visual_pos" in batch
+        batch.update(
+            {
+                "visual_feats": torch.vstack(list(map(torch.tensor, batch['visual_feats']))),
+                "visual_pos": torch.vstack(list(map(torch.tensor, batch['visual_pos'])))
+            }
+        )
     else:
         batch_size = len(batch) # TODO check
         if visual_feats is None:

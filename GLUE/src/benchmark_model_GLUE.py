@@ -9,6 +9,7 @@ import torch
 from PIL import Image, ImageOps
 import torchvision.transforms as transforms
 from tqdm import tqdm
+from torch.nn.functional import pad
 
 import pandas as pd
 import numpy as np
@@ -155,7 +156,7 @@ def benchmark_on_GLUE_task(model_name: str,
             pathes = generated_imgs_path_df.loc[indices]['visbert_features_path']
             visual_embeds = []
     
-            for path in pathes:
+            for path in tqdm(pathes, desc='Loading Images'):
                 visual_embeds.append(torch.load(path))
 
             result.update(
@@ -166,18 +167,33 @@ def benchmark_on_GLUE_task(model_name: str,
 
         elif model_name_prefix == "lxmert":
             pathes = generated_imgs_path_df.loc[indices][[
-                'lxmert_visual_features_path', 'lxmert_visual_boxes_path'
+                'visbert_features_path', 'predictions_path'
             ]]
             visual_feats = []
             visual_pos = []
-            for feats_p, boxes_p in pathes:
+
+            for feats_p, boxes_p in tqdm(pathes.itertuples(index=False), desc='Loading Images', total=len(pathes)):
                 visual_feats.append(torch.load(feats_p).unsqueeze(0))
-                visual_feats.append(torch.load(boxes_p).unsqueeze(0))
+                visual_pos.append(torch.load(boxes_p)[0]['boxes'].unsqueeze(0))
+
+            max_num_boxes = np.max(list(map(lambda x: x.shape[1], visual_pos)))
+
+
+            fixed_num_boxes = 36 # fixed by modeling
+            for i, pos in tqdm(
+                enumerate(visual_pos),
+                desc=f'Padding zero boxes to fixed size {max_num_boxes}'
+            ):
+                num_boxes = pos.shape[1]
+                if num_boxes < fixed_num_boxes:
+                    visual_pos[i] = pad(pos, pad=(0, 0, 0, fixed_num_boxes - num_boxes), mode='constant', value=0)
+                else:
+                    visual_pos[i] = pos[:,:fixed_num_boxes]
 
             result.update(
                 {
-                    "visual_feats": torch.vstack(visual_feats),
-                    "visual_pos": torch.vstack(visual_pos)
+                    "visual_feats": visual_feats,
+                    "visual_pos": visual_pos
                 }
             )
 

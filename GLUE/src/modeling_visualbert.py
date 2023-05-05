@@ -10,9 +10,25 @@ import torch.nn.functional as F
 
 VISUALBERT_FEATURES_SHAPE = (36, 2048)
 
-def get_visualbert_batch(batch, visual_feats=None):
+def get_visualbert_batch(batch, visual_feats=None, use_generated_imgs=False):
     # align the visual inputs
-    if visual_feats is not None:
+    if use_generated_imgs:
+        assert "visual_embeds" in batch
+        visual_embeds = torch.vstack(list(map(torch.tensor, batch['visual_embeds'])))
+        if len(visual_embeds.shape) < 3:
+            visual_embeds = visual_embeds.unsqueeze(0)
+        visual_token_type_ids = torch.ones(visual_embeds.shape[:-1], dtype=torch.long)
+        visual_attention_mask = torch.ones(visual_embeds.shape[:-1], dtype=torch.float)
+
+        batch.update(
+            {
+                "visual_embeds": visual_embeds,
+                "visual_token_type_ids": visual_token_type_ids,
+                "visual_attention_mask": visual_attention_mask,
+            }
+        )
+
+    elif visual_feats is not None:
         batch_size = len(batch)
         visual_embeds = visual_feats.unsqueeze(0).repeat(batch_size, 1, 1)
         visual_token_type_ids = torch.ones(visual_embeds.shape[:-1], dtype=torch.long)

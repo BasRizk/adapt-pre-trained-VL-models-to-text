@@ -10,22 +10,26 @@ from typing import Optional, Union, List, Tuple, Dict, Any
 LXMERT_FEATURES_SHAPE = (1, 2048)
 LXMERT_NORMALIZED_BOXES_SHAPE = (1, 4)
 
-def get_lxmert_batch(batch, visual_feats=None, visual_boxes=None):
+def get_lxmert_batch(batch, visual_feats=None, visual_boxes=None, use_generated_imgs=False):
     # align the visual inputs
-    batch_size = len(batch)
-    if visual_feats is None:
-        visual_feats = torch.empty((batch_size,)+LXMERT_FEATURES_SHAPE).uniform_(0, 10)
+    if use_generated_imgs:
+        assert "visual_feats" in batch
+        assert "visual_pos" in batch
     else:
-        visual_feats = visual_feats.unsqueeze(0).repeat(batch_size, 1, 1)
-    if visual_boxes is None:
-        visual_pos = torch.empty((batch_size,)+LXMERT_NORMALIZED_BOXES_SHAPE).uniform_(0, 1)
-    else:
-        visual_pos = visual_boxes.unsqueeze(0).repeat(batch_size, 1, 1)
+        batch_size = len(batch) # TODO check
+        if visual_feats is None:
+            visual_feats = torch.empty((batch_size,)+LXMERT_FEATURES_SHAPE).uniform_(0, 10)
+        else:
+            visual_feats = visual_feats.unsqueeze(0).repeat(batch_size, 1, 1)
+        if visual_boxes is None:
+            visual_pos = torch.empty((batch_size,)+LXMERT_NORMALIZED_BOXES_SHAPE).uniform_(0, 1)
+        else:
+            visual_pos = visual_boxes.unsqueeze(0).repeat(batch_size, 1, 1)
 
-    batch.update({
-        "visual_feats": visual_feats,
-        "visual_pos": visual_pos
-    })
+        batch.update({
+            "visual_feats": visual_feats,
+            "visual_pos": visual_pos
+        })
 
     return batch
 
@@ -63,6 +67,7 @@ class DataCollatorWithPaddingSkippingFeatures:
         if "label_ids" in batch:
             batch["labels"] = batch["label_ids"]
             del batch["label_ids"]
+
         return batch
 
 class LxmertConfigForSequenceClassification(LxmertConfig):

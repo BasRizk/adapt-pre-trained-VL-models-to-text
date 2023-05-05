@@ -6,6 +6,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 import torch
 
+from PIL import Image, ImageOps
+import torchvision.transforms as transforms
+from tqdm import tqdm
+
+import pandas as pd
 import numpy as np
 from datasets import load_dataset, load_metric
 
@@ -32,6 +37,7 @@ from transformers import (
 from datetime import datetime
 import copy
 import json
+
 
 from models.src.lxmert.alterations import LxmertLanguageOnlyXLayer
 from GLUE.src.modeling_lxmert import (
@@ -104,15 +110,91 @@ def benchmark_on_GLUE_task(model_name: str,
                            visual_features_path: str,
                            visual_boxes_path: str,
                            model_weights_path: str,
-                           use_imagined_visual_feats: bool):
+                           use_imagined_visual_feats: bool,
+                           generated_imgs_path: str):
     
+    def get_generated_imgs_path_df(mode):
+        logger.info(f'Getting generated Images Path for {mode} split')
+        # logger.info(f"Using generated imgs features for multimodal model.")
+        def fix_path(_str):
+            arr = _str.split('/')
+            # arr.insert(1, batch_type)
+            return os.path.join(generated_imgs_path, task_name.upper(), *arr)
+        if generated_imgs_path is None:
+            return None
+        
+        generated_imgs_path_df = pd.read_csv(
+            f'{generated_imgs_path}/{task_name.upper()}/{mode}.csv'
+        )
+        generated_imgs_path_df = generated_imgs_path_df.set_index('idx').sort_index()
+        for col in generated_imgs_path_df.columns:
+            generated_imgs_path_df[col] = generated_imgs_path_df[col].apply(fix_path)
+        return generated_imgs_path_df
+
     def standard_preprocess_function(examples):
         # Tokenize the texts
         args = (
             (examples[sentence1_key],) if sentence2_key is None else (examples[sentence1_key], examples[sentence2_key])
         )
         result = tokenizer(*args, padding=False, max_length=config.max_position_embeddings, truncation=True)
+        return result
 
+
+    def preprocess_function_inc_generated_imgs(examples, mode):
+        def load_img_tensor(path):
+            img = Image.open(path)
+            img = ImageOps.grayscale(img)
+            transform = transforms.ToTensor()
+            return transform(img)
+    
+        result = standard_preprocess_function(examples)
+        generated_imgs_path_df = get_generated_imgs_path_df(mode)
+        indices = examples['idx']
+
+        if model_name_prefix == "visualbert":
+            pathes = generated_imgs_path_df.loc[indices]['visbert_features_path']
+            visual_embeds = []
+    
+            for path in pathes:
+                visual_embeds.append(torch.load(path))
+
+            result.update(
+                {
+                    "visual_embeds": visual_embeds
+                }
+            )
+
+        elif model_name_prefix == "lxmert":
+            pathes = generated_imgs_path_df.loc[indices][[
+                'lxmert_visual_features_path', 'lxmert_visual_boxes_path'
+            ]]
+            visual_feats = []
+            visual_pos = []
+            for feats_p, boxes_p in pathes:
+                visual_feats.append(torch.load(feats_p).unsqueeze(0))
+                visual_feats.append(torch.load(boxes_p).unsqueeze(0))
+
+            result.update(
+                {
+                    "visual_feats": torch.vstack(visual_feats),
+                    "visual_pos": torch.vstack(visual_pos)
+                }
+            )
+
+        elif model_name_prefix == "clipbert":
+            pathes = generated_imgs_path_df.loc[indices]['path']
+            img_feats = []
+            for path in tqdm(pathes, desc="Loading Images"):
+                img_feats.append(load_img_tensor(path))    
+
+            result.update(
+                {
+                    "img_feats": img_feats
+                }
+            )
+        else:
+            raise Exception("Not Implemented for other model types")
+        
         return result
 
     def preprocess_function_with_clip(examples):
@@ -125,12 +207,12 @@ def benchmark_on_GLUE_task(model_name: str,
         with torch.no_grad():
             inputs = clip_tokenizer(*args, return_tensors="pt", padding=True, truncation=True).to(device)
             img_feats = clip_model.get_text_features(**inputs).unsqueeze(1).tolist()
+
         result.update(
             {
                 "img_feats": img_feats
             }
         )
-
         return result
 
     def compute_metrics(p: EvalPrediction):
@@ -178,21 +260,30 @@ def benchmark_on_GLUE_task(model_name: str,
             config=config,
             cache_dir=cache_dir,
         )
-        if visual_features_path is None:
-            prev_encoder = copy.deepcopy(model.lxmert.encoder)
-            model.lxmert.encoder.x_layers = torch.nn.ModuleList([LxmertLanguageOnlyXLayer(model.lxmert.encoder.config) for _ in range(model.lxmert.encoder.config.x_layers)])
-            model.lxmert.encoder.load_state_dict(prev_encoder.state_dict())
 
-            logger.info(f"Using no visual features for multimodal model.")
-            visual_feats = None
-            visual_boxes = None
+        if generated_imgs_path is not None:
+            logger.info(f"Using generated images features for multimodal model.")
+            batch_processor = lambda batch: get_lxmert_batch(
+                batch, use_generated_imgs=True
+            )
         else:
-            assert visual_boxes_path is not None, "For LXMERT both visual features and visual boxes need to be given"
-            logger.info(f"Using given visual features for multimodal model.")
-            visual_feats = torch.load(visual_features_path)
-            visual_boxes = torch.load(visual_boxes_path)
+            if visual_features_path is None:
+                prev_encoder = copy.deepcopy(model.lxmert.encoder)
+                model.lxmert.encoder.x_layers = torch.nn.ModuleList([LxmertLanguageOnlyXLayer(model.lxmert.encoder.config) for _ in range(model.lxmert.encoder.config.x_layers)])
+                model.lxmert.encoder.load_state_dict(prev_encoder.state_dict())
 
-        batch_processor = lambda batch: get_lxmert_batch(batch, visual_feats=visual_feats, visual_boxes=visual_boxes)
+                logger.info(f"Using no visual features for multimodal model.")
+                visual_feats = None
+                visual_boxes = None
+            else:
+                assert visual_boxes_path is not None, "For LXMERT both visual features and visual boxes need to be given"
+                logger.info(f"Using given visual features for multimodal model.")
+                visual_feats = torch.load(visual_features_path)
+                visual_boxes = torch.load(visual_boxes_path)
+
+            batch_processor = lambda batch: get_lxmert_batch(
+                batch, visual_feats=visual_feats, visual_boxes=visual_boxes,
+            )
         multimodal_features_to_skip = ("visual_feats", "visual_pos")
     elif model_name_prefix == "visualbert":
         config = VisualBertConfigForSequenceClassification.from_pretrained(
@@ -207,15 +298,24 @@ def benchmark_on_GLUE_task(model_name: str,
             cache_dir=cache_dir,
         )
 
-        if visual_features_path is not None:
-            logger.info(f"Using given visual features for multimodal model.")
-            visual_feats = torch.load(visual_features_path)
+        if generated_imgs_path is not None:
+            logger.info(f"Using generated images features for multimodal model.")
+            batch_processor = lambda batch: get_visualbert_batch(
+                batch, use_generated_imgs=True
+            )
         else:
-            logger.info(f"Using no visual features for multimodal model.")
-            visual_feats = None
-
-        batch_processor = lambda batch: get_visualbert_batch(batch, visual_feats=visual_feats)
+            if visual_features_path is not None:
+                logger.info(f"Using given visual features for multimodal model.")
+                visual_feats = torch.load(visual_features_path)
+            else:
+                logger.info(f"Using no visual features for multimodal model.")
+                visual_feats = None
+                
+            batch_processor = lambda batch: get_visualbert_batch(
+                batch, visual_feats=visual_feats
+            )
         multimodal_features_to_skip = ("visual_embeds", "visual_token_type_ids", "visual_attention_mask", "labels")
+
     elif model_name_prefix == "clipbert":
         config = BertConfig.from_pretrained(
             pretrained_model_name_or_path="bert-base-uncased", 
@@ -225,8 +325,12 @@ def benchmark_on_GLUE_task(model_name: str,
         )
         model = ClipBertForSequenceClassification(config)
         assert model_weights_path is not None, "CLIP-BERT needs to be initialized from pre-trained weights"
-
-        if use_imagined_visual_feats:
+        if generated_imgs_path:
+            logger.info(f"Using generated images visual features for multimodal model.")
+            batch_processor = lambda batch: get_clipbert_batch(
+                batch, visual_feats=None, use_generated_imgs=True
+            )
+        elif use_imagined_visual_feats:
             logger.info(f"Using CLIP generated visual features for multimodal model.")
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device).eval()
@@ -240,7 +344,9 @@ def benchmark_on_GLUE_task(model_name: str,
             batch_processor = lambda batch: get_clipbert_batch(batch, visual_feats=visual_feats)
         else:
             logger.info(f"Using no visual features for multimodal model.")
-            batch_processor = lambda batch: get_clipbert_batch(batch, visual_feats=None)
+            batch_processor = lambda batch: get_clipbert_batch(
+                batch, visual_feats=None,
+            )
 
         multimodal_features_to_skip = ("img_feats")
     elif model_name_prefix == "flava":
@@ -285,14 +391,24 @@ def benchmark_on_GLUE_task(model_name: str,
             tokenizer_name or model_name or model_path,
             cache_dir=cache_dir,
         )
-    if use_imagined_visual_feats:
-        preprocess_function = preprocess_function_with_clip
-    else: 
-        preprocess_function = standard_preprocess_function
+
 
     sentence1_key, sentence2_key = GLUE_TASK_TO_KEYS[task_name]
 
-    datasets = datasets.map(preprocess_function, batched=True, load_from_cache_file=True)
+    if generated_imgs_path is not None:
+        preprocess_function = lambda exs, mode:preprocess_function_inc_generated_imgs(exs, mode)
+        for split_name, dataset in datasets.items():
+            datasets[split_name] = dataset.map(
+                lambda exs: preprocess_function(exs, split_name), 
+                batched=True, load_from_cache_file=True
+            )
+    else:
+        if use_imagined_visual_feats:
+            preprocess_function = preprocess_function_with_clip
+        else: 
+            preprocess_function = standard_preprocess_function
+
+        datasets = datasets.map(preprocess_function, batched=True, load_from_cache_file=True)
 
     train_dataset = datasets["train"]
     if max_train_samples is not None:
@@ -466,6 +582,12 @@ if __name__ == "__main__":
     parser.add_argument("--model-weights-path", default=None)
     parser.add_argument('--use-imagined-visual-feats', default=False, action='store_true')
 
+    # New Adaptation method
+    parser.add_argument(
+        '--generated-imgs-path', type=str, default=None, 
+        help='Path to directory of generated images containing train/val/test in the form TASK_NAME/train.csv'
+    )
+
     args = parser.parse_args()
 
     benchmark_on_GLUE_task(
@@ -489,5 +611,6 @@ if __name__ == "__main__":
         visual_features_path=args.visual_features_path,
         visual_boxes_path=args.visual_boxes_path,
         model_weights_path=args.model_weights_path,
-        use_imagined_visual_feats=args.use_imagined_visual_feats
+        use_imagined_visual_feats=args.use_imagined_visual_feats,
+        generated_imgs_path=args.generated_imgs_path
     )

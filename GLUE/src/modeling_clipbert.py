@@ -27,13 +27,27 @@ class BertPooler(nn.Module):
         pooled_output = self.activation(pooled_output)
         return pooled_output
 
-def get_clipbert_batch(batch, visual_feats=None, use_imagined_visual_feats=False):
+from PIL import Image, ImageOps
+import torchvision.transforms as transforms
+
+def load_img_tensor(path):
+    img = Image.open(path)
+    img = ImageOps.grayscale(img)
+    transform = transforms.ToTensor()
+    return transform(img)
+
+# print the converted image tensor
+def get_clipbert_batch(
+        batch, visual_feats=None, use_imagined_visual_feats=False,
+        use_generated_imgs=False):
     # align the visual inputs
-    if use_imagined_visual_feats:
+    
+    if use_imagined_visual_feats or use_generated_imgs:
         assert "img_feats" in batch, "With 'use_imagined_visual_feats'=True, visual features should already be present in batch"
         return batch
+    
     elif visual_feats is not None:
-        batch_size = len(batch)
+        batch_size = len(batch) # TODO check
         img_feats = visual_feats.unsqueeze(0).repeat(batch_size, 1).unsqueeze(1)
         batch.update(
             {

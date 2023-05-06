@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=32GB
+#SBATCH --time=10:00:00
+#SBATCH --account=jessetho_1016
+#SBATCH --gres=gpu:p100:1
+#SBATCH --partition=gpu
+
+SCRIPTS_DIR=src/scripts
+ENV_NAME=dl
+DATASET='cola'
+SPLIT='train'
+OUTPUT_BASE_DIR=/scratch1/ag_394/ADAPTATION_IMAGES
+OUTPUT_DIR=${OUTPUT_BASE_DIR}/COLA/${SPLIT}
+
+
+module purge && echo "purged modules" &&\
+source /home1/ag_394/adapt/src/scripts/init_env_on_carc_with_gpu.sh &&\
+conda activate $ENV_NAME &&\
+echo "done init and activating env: $ENV_NAME" &&\
+python ~/adapt/src/generate_images.py -d $DATASET -s $SPLIT -o $OUTPUT_DIR -b 8400 -e 8551 &&\
+echo "finished"
